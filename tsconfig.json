@@ -8,14 +8,14 @@
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "plugins": [{ "name": "next" }]
   },
-  "include": ["app", "next-env.d.ts", ".next/types/**/*.ts", "types/**/*.d.ts"],
+  "include": ["app", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
