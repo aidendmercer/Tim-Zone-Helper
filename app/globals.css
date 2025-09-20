@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Color tokens (muted) */
+/* Light theme tokens */
 :root {
-  --bg: #0b1220;
-  --panel: #121a2f;
-  --muted: #94a3b8;
-  --text: #e5e7eb;
-  --ring: #3f8fbf;
+  --bg: #ffffff;
+  --panel: #f8fafc; /* slate-50 */
+  --muted: #475569; /* slate-600 */
+  --text: #0f172a;  /* slate-900 */
+  --ring: #2563eb;  /* blue-600 */
 }
 
 html, body, #__next {
@@ -16,55 +16,56 @@ html, body, #__next {
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-ink text-slate-100 antialiased;
+  /* Light mode base */
+  @apply bg-white text-slate-900 antialiased;
 }
 
 a {
-  @apply underline underline-offset-2 decoration-slate-500 hover:decoration-accent-500;
+  @apply underline underline-offset-2 decoration-slate-300 hover:decoration-blue-500;
 }
 
 .focus-ring {
-  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
 }
 
-/* Timeline specifics */
+/* Timeline specifics (light) */
 .timeline-grid {
-  background-image:
-    linear-gradient(to right, rgba(148,163,184,0.07) 1px, transparent 1px);
+  /* subtle vertical lines every hour; color adapts to pxPerHour via inline size */
+  background-image: linear-gradient(to right, rgba(15, 23, 42, 0.08) 1px, transparent 1px);
   background-size: 40px 100%;
 }
 
 .hour-labels {
-  @apply text-[10px] leading-none text-slate-400;
+  @apply text-[10px] leading-none text-slate-600;
 }
 
 /* Scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #334155 #0b1220;
+  scrollbar-color: #cbd5e1 #ffffff; /* thumb, track */
 }
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #cbd5e1;
   border-radius: 8px;
 }
 *::-webkit-scrollbar-track {
-  background: #0b1220;
+  background: #ffffff;
 }
 
-/* Panel */
+/* Panel (light) */
 .panel {
-  @apply bg-ink-400/30 border border-white/5 rounded-xl shadow-soft;
+  @apply bg-slate-50 border border-slate-200 rounded-xl shadow-sm;
 }
 
 /* Date pill */
 .date-pill {
-  @apply text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-200 border border-white/10;
+  @apply text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200;
 }
