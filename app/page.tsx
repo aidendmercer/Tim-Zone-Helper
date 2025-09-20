@@ -10,18 +10,11 @@ import { loadCities, loadPrefs, saveCities, savePrefs } from "./(lib)/storage";
 
 export default function Page() {
   const [cities, setCities] = useState<City[]>(seedCities);
-
-  // Safe initial ref id
   const initialRefId = seedCities[0]?.id ?? "Europe/Helsinki";
-
-  const [prefs, setPrefs] = useState<Preferences>({
-    timeFormat: "24h",
-    referenceCityId: initialRefId
-  });
-
+  const [prefs, setPrefs] = useState<Preferences>({ timeFormat: "24h", referenceCityId: initialRefId });
   const [addOpen, setAddOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Load persisted
   useEffect(() => {
     (async () => {
       const [c, p] = await Promise.all([loadCities(), loadPrefs()]);
@@ -35,14 +28,8 @@ export default function Page() {
     })();
   }, [initialRefId]);
 
-  // Persist on changes
-  useEffect(() => {
-    saveCities(cities);
-  }, [cities]);
-
-  useEffect(() => {
-    savePrefs(prefs);
-  }, [prefs]);
+  useEffect(() => { saveCities(cities); }, [cities]);
+  useEffect(() => { savePrefs(prefs); }, [prefs]);
 
   const referenceCity = useMemo(
     () =>
@@ -58,10 +45,7 @@ export default function Page() {
   );
 
   function handleAddCity(c: City) {
-    setCities((prev) => {
-      if (prev.some((x) => x.id === c.id)) return prev;
-      return [...prev, c];
-    });
+    setCities((prev) => (prev.some((x) => x.id === c.id) ? prev : [...prev, c]));
   }
 
   return (
@@ -72,13 +56,15 @@ export default function Page() {
         onMakeReference={(id) => setPrefs({ ...prefs, referenceCityId: id })}
         referenceCityId={referenceCity.id}
         onOpenAddCity={() => setAddOpen(true)}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      <main className="flex-1 min-w-0 p-6 space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 space-y-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Time-Zone Comparison</h1>
-          <div className="text-sm text-slate-400">
-            Dark mode by default • Accessible focus rings • Keyboard-friendly
+          <h1 className="text-lg sm:text-xl font-semibold">Time-Zone Comparison</h1>
+          <div className="text-xs sm:text-sm text-slate-500">
+            Light theme • Accessible • Mobile-friendly
           </div>
         </header>
 
@@ -89,6 +75,7 @@ export default function Page() {
           setPrefs={setPrefs}
           referenceCity={referenceCity}
           onOpenAddCity={() => setAddOpen(true)}
+          onOpenSidebarMobile={() => setMobileSidebarOpen(true)}
         />
       </main>
 
