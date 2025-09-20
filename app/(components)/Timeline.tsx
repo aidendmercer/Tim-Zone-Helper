@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DateTime } from "luxon";
 import CityRow from "./CityRow";
 import type { City, Preferences } from "../(lib)/cities";
@@ -44,13 +44,17 @@ export default function Timeline({
   }, [referenceCity.tz]);
 
   // When user's zone or selected date changes, anchor timelines to that day start
-const referenceDayStart = useMemo(() => {
-  const [y, m, d] = selectedDateISO.split("-").map((n) => parseInt(n, 10));
-  // Build the date in the user's zone without using fromISO (keeps types simple)
-  const base = DateTime.fromObject({ year: y, month: m, day: d, hour: 0, minute: 0 }).setZone(referenceCity.tz).startOf("day");
-  return base;
-}, [selectedDateISO, referenceCity.tz]);
-
+  const referenceDayStart = useMemo(() => {
+    const [y, m, d] = selectedDateISO.split("-").map((n) => parseInt(n, 10));
+    const base = DateTime.fromObject({
+      year: y,
+      month: m,
+      day: d,
+      hour: 0,
+      minute: 0
+    }).setZone(referenceCity.tz).startOf("day");
+    return base;
+  }, [selectedDateISO, referenceCity.tz]);
 
   // Adjust selectedTime to live on the chosen date (preserve hour component)
   useEffect(() => {
@@ -62,7 +66,6 @@ const referenceDayStart = useMemo(() => {
 
   // Responsive hours width / labels
   const PX_PER_HOUR = bp === "mobile" ? 28 : bp === "tablet" ? 36 : 44;
-  const labelStep = bp === "mobile" ? 2 : 1;
 
   // Current-time pointer position in reference scale
   const nowHour = useMemo(() => {
@@ -76,7 +79,7 @@ const referenceDayStart = useMemo(() => {
     setSelectedTime(n);
   }
 
-  // Drag on a row: updates shared selectedTime (snap on mouseup handled by onKeyUp/timeout)
+  // Drag on a row: updates shared selectedTime (snap after small delay)
   function handleDragToHour(h: number) {
     const t = referenceDayStart.plus({ hours: h });
     setSelectedTime(t);
@@ -138,7 +141,7 @@ const referenceDayStart = useMemo(() => {
           </label>
         </div>
 
-        {/* Removed top-right tagline and reference text per spec */}
+        {/* Right side intentionally empty per facelift spec */}
         <div />
       </div>
 
@@ -149,7 +152,6 @@ const referenceDayStart = useMemo(() => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="font-medium text-sm sm:text-base">{c.label}</div>
-                {/* timezone text removed */}
               </div>
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* Single X remove button */}
@@ -185,7 +187,7 @@ const referenceDayStart = useMemo(() => {
         ))}
       </div>
 
-      {/* Selected time summary (kept simple) */}
+      {/* Selected time summary */}
       <div className="panel p-3 sm:p-4">
         <div className="mb-3 text-xs sm:text-sm text-slate-600">
           Selected:{" "}
