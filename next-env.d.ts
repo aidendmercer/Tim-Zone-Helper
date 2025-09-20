@@ -6,3 +6,5 @@
 // see https://nextjs.org/docs/basic-features/typescript for more information.
 
 /// <reference path="./types/luxon-internal-alias.d.ts" />
+
+/// <reference path="./types/luxon.d.ts" />
