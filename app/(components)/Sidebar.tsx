@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { City } from "../(lib)/cities";
 import { DateTime } from "luxon";
 import { PlusCircle, X } from "@phosphor-icons/react";
@@ -8,11 +8,11 @@ import { PlusCircle, X } from "@phosphor-icons/react";
 export default function Sidebar({
   cities,
   onRemove,
-  onMakeReference, // kept for API compat; unused now
+  onMakeReference, // kept for API compat; unused
   referenceCityId,
   onOpenAddCity,
   mobileOpen = false,
-  onMobileClose
+  onMobileClose,
 }: {
   cities: City[];
   onRemove: (id: string) => void;
@@ -22,7 +22,10 @@ export default function Sidebar({
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }) {
-  // No search panel, no "Your Cities" title, no flags, no timezone lines
+  // Avoid SSR time output to prevent hydration mismatch
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const list = useMemo(() => cities, [cities]);
 
   const content = (
@@ -40,8 +43,7 @@ export default function Sidebar({
       <div className="panel p-2">
         <ul className="divide-y divide-slate-200">
           {list.map((c) => {
-            const local = DateTime.now().setZone(c.tz);
-            const time = local.toFormat("HH:mm");
+            const time = mounted ? DateTime.now().setZone(c.tz).toFormat("HH:mm") : "— —";
             return (
               <li key={c.id} className="flex items-center justify-between gap-2 py-2">
                 <div className="min-w-0">
@@ -49,7 +51,6 @@ export default function Sidebar({
                     {c.label}
                     {c.id === referenceCityId && <span className="ml-2 text-[10px] text-blue-600">(you)</span>}
                   </div>
-                  {/* timezone string removed */}
                 </div>
                 <div className="text-right">
                   <div className="text-sm">{time}</div>
@@ -64,8 +65,10 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Desktop */}
       <aside className="hidden md:block">{content}</aside>
 
+      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/30" onClick={onMobileClose} />
