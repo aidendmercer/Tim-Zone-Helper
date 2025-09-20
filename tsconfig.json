@@ -14,11 +14,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      { "name": "next" }
-    ],
-    "types": ["vite/client", "node"]
+    "plugins": [{ "name": "next" }]
   },
-  "include": ["app", "components", "next-env.d.ts"],
+  "include": ["app", "next-env.d.ts"],
   "exclude": ["node_modules"]
 }
