@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: "class",
+  darkMode: "class", // keep support, but we won't force it
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}"
@@ -9,46 +9,46 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Muted palette (dark-first)
+        // Keep existing names but ensure they look fine in light mode
         ink: {
-          DEFAULT: "#0b1220",
-          50: "#0b1220",
-          100: "#0f172a",
-          200: "#121a2f",
-          300: "#172136",
-          400: "#1b273f",
-          500: "#20304b"
+          DEFAULT: "#ffffff",
+          50: "#ffffff",
+          100: "#f8fafc",
+          200: "#f1f5f9",
+          300: "#e2e8f0",
+          400: "#cbd5e1",
+          500: "#94a3b8"
         },
         slatey: {
-          100: "#e5e7eb",
-          200: "#cbd5e1",
-          300: "#94a3b8",
-          400: "#64748b",
-          500: "#475569",
-          600: "#334155",
-          700: "#1f2937",
-          800: "#111827",
-          900: "#0b1220"
+          100: "#0f172a", /* inverse mapping for text usage in code */
+          200: "#1e293b",
+          300: "#334155",
+          400: "#475569",
+          500: "#64748b",
+          600: "#94a3b8",
+          700: "#cbd5e1",
+          800: "#e2e8f0",
+          900: "#f8fafc"
         },
         accent: {
-          // subtle blue-cyan for highlights
-          400: "#5aa7d7",
-          500: "#3f8fbf",
-          600: "#2e6f99"
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb"
         },
         dayperiod: {
-          night: "#1b273f",
-          dawn: "#22304e",
-          day: "#2a3a59",
-          dusk: "#22304e"
+          /* Muted, light-friendly fills for timelines */
+          night: "#e2e8f0",  /* slate-200 */
+          dawn: "#eaf2ff",   /* soft blue tint */
+          day: "#f1f5f9",    /* slate-100 */
+          dusk: "#eaf2ff"
         },
         marker: {
           selected: "#0b3a5a",
-          now: "#b84a4a"
+          now: "#dc2626" /* red-600 with lower opacity in component */
         }
       },
       boxShadow: {
-        soft: "0 1px 0 0 rgba(255,255,255,0.02), 0 0 0 1px rgba(255,255,255,0.04) inset"
+        soft: "0 1px 0 0 rgba(0,0,0,0.02), 0 0 0 1px rgba(0,0,0,0.04) inset"
       }
     }
   },
