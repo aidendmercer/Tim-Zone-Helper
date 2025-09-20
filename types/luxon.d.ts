@@ -8,6 +8,7 @@ declare module "luxon" {
     static now(): DateTime;
     static fromJSDate(date: Date): DateTime;
     static fromObject(obj: { hour?: number; minute?: number }): DateTime;
+    static fromISO(text: string, options?: { zone?: string }): DateTime;
 
     // immutables returning new DateTime
     setZone(zone: string): DateTime;
@@ -26,7 +27,7 @@ declare module "luxon" {
     toISODate(): string | null;
   }
 
-  // Placeholders so named imports compile; we don't use their shape here.
+  // Placeholders so named imports compile; exact shapes not needed here.
   export class Duration {}
   export class Interval {}
 }
