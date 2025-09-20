@@ -5,6 +5,7 @@ declare module "luxon" {
   /** Subset of Luxon's DateTime API used in this project */
   export class DateTime {
     // constructors / factories
+    static fromISO(text: string, options?: { zone?: string }): DateTime;
     static now(): DateTime;
     static fromJSDate(date: Date): DateTime;
     static fromObject(obj: {
