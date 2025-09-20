@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DateTime, Duration, Interval } from "luxon";
+import { DateTime } from "luxon";
 import Marker from "./Marker";
 import NowIndicator from "./NowIndicator";
 import CityRow from "./CityRow";
 import TimeScale from "./TimeScale";
 import type { City, Preferences } from "../(lib)/cities";
-import { countryCodeToFlagEmoji, hourFromClientX, pxFromHour, roundToNearestHour } from "../(lib)/time";
+import { countryCodeToFlagEmoji, hourFromClientX, roundToNearestHour } from "../(lib)/time";
 import Toggle from "./Toggle";
-import { Plus, Target, Trash, FloppyDisk } from "@phosphor-icons/react";
+import { Plus, Target, Trash } from "@phosphor-icons/react";
 
 const PX_PER_HOUR = 40; // 24 * 40 = 960px wide timelines
 
@@ -34,22 +34,23 @@ export default function Timeline({ cities, setCities, prefs, setPrefs, reference
   useEffect(() => {
     const id = setInterval(() => {
       setNow(DateTime.now().setZone(referenceCity.tz));
-    }, 1000 * 30);
+    }, 30_000);
     return () => clearInterval(id);
   }, [referenceCity.tz]);
 
-  // Reset selectedTime when reference city changes (keep wall-clock hour if possible)
+  // When reference city changes, keep the same wall-clock time in the new zone
   useEffect(() => {
     setSelectedTime((prev) => prev.setZone(referenceCity.tz));
   }, [referenceCity.tz]);
 
+  // Start of the reference day (used as the 0..24h scale)
   const referenceDayStart = useMemo(
     () => now.setZone(referenceCity.tz).startOf("day"),
     [now, referenceCity.tz]
   );
 
+  // Map DateTime -> hour offsets on the 0..24 scale
   const selectedHour = useMemo(() => {
-    // position relative to referenceDayStart
     const diff = selectedTime.diff(referenceDayStart, "hours").hours;
     return Math.max(0, Math.min(24, diff));
   }, [selectedTime, referenceDayStart]);
@@ -59,6 +60,7 @@ export default function Timeline({ cities, setCities, prefs, setPrefs, reference
     return Math.max(0, Math.min(24, diff));
   }, [now, referenceDayStart]);
 
+  // Drag handlers for the global timeline
   function onPointerDown(e: React.PointerEvent) {
     setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -70,7 +72,7 @@ export default function Timeline({ cities, setCities, prefs, setPrefs, reference
   }
   function onPointerUp() {
     setIsDragging(false);
-    // Snap to nearest hour
+    // Snap to nearest hour on release
     setSelectedTime((t) => roundToNearestHour(t));
   }
 
@@ -115,11 +117,14 @@ export default function Timeline({ cities, setCities, prefs, setPrefs, reference
         </div>
 
         <div className="text-sm text-slate-300">
-          Reference: <span className="font-medium">{/* flag + label handled elsewhere if needed */}</span>
+          Reference:&nbsp;
+          <span className="font-medium">
+            {countryCodeToFlagEmoji(referenceCity.countryCode)} {referenceCity.label}
+          </span>
         </div>
       </div>
 
-      {/* Global scale */}
+      {/* Global 24h scale with draggable marker */}
       <div className="space-y-2">
         <div className="text-sm text-slate-300">Global 24h timeline</div>
         <div
@@ -135,12 +140,102 @@ export default function Timeline({ cities, setCities, prefs, setPrefs, reference
           aria-label="Selected hour marker"
           tabIndex={0}
         >
-          {/* TimeScale remains unchanged */}
-          {/* Marker & NowIndicator remain unchanged */}
+          <TimeScale pxPerHour={PX_PER_HOUR} timeFormat={prefs.timeFormat} />
+          <Marker hour={selectedHour} pxPerHour={PX_PER_HOUR} />
+          <NowIndicator hour={nowHour} pxPerHour={PX_PER_HOUR} />
         </div>
       </div>
 
-      {/* The rest of the component remains unchanged in logic; imports are the important part for this fix */}
+      {/* City rows */}
+      <div className="space-y-6">
+        {cities.map((c) => (
+          <div key={c.id} className="panel p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="text-lg leading-none">{countryCodeToFlagEmoji(c.countryCode)}</div>
+                <div className="font-medium">{c.label}</div>
+                <div className="text-xs text-slate-400">{c.tz}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="text-xs text-slate-300 hover:text-white focus-ring px-2 py-1 rounded border border-white/10 bg-white/5"
+                  onClick={() => setPrefs({ ...prefs, referenceCityId: c.id })}
+                  disabled={c.id === referenceCity.id}
+                  title={c.id === referenceCity.id ? "Reference city" : "Make reference"}
+                >
+                  Make reference
+                </button>
+                <button
+                  className="text-xs text-slate-300 hover:text-white focus-ring px-2 py-1 rounded border border-white/10 bg-white/5"
+                  onClick={() => {
+                    if (confirm(`Remove ${c.label}?`)) {
+                      setCities(cities.filter((x) => x.id !== c.id));
+                    }
+                  }}
+                  title="Remove city"
+                >
+                  <Trash size={16} className="inline-block mr-1" />
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <CityRow
+              city={c}
+              referenceDayStart={referenceDayStart}
+              selectedTime={selectedTime}
+              timeFormat={prefs.timeFormat}
+              pxPerHour={PX_PER_HOUR}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Selected time table */}
+      <div className="panel p-4">
+        <div className="mb-3 text-sm text-slate-300">
+          Selected Time:{" "}
+          <span className="font-medium">
+            {selectedTime.toFormat(prefs.timeFormat === "12h" ? "EEE d LLL yyyy • h:mm a" : "EEE d LLL yyyy • HH:mm")}{" "}
+            ({referenceCity.label})
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-slate-300 border-b border-white/10">
+                <th className="py-2 pr-4">City</th>
+                <th className="py-2 pr-4">Local Date</th>
+                <th className="py-2 pr-4">Local Time</th>
+                <th className="py-2 pr-4">TZ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cities.map((c) => {
+                const local = selectedTime.setZone(c.tz);
+                return (
+                  <tr key={c.id} className="border-b border-white/5">
+                    <td className="py-2 pr-4">
+                      <span className="mr-2">{countryCodeToFlagEmoji(c.countryCode)}</span>
+                      {c.label}
+                    </td>
+                    <td className="py-2 pr-4">{local.toFormat("EEE d LLL yyyy")}</td>
+                    <td className="py-2 pr-4">
+                      {local.toFormat(prefs.timeFormat === "12h" ? "h:mm a" : "HH:mm")}
+                    </td>
+                    <td className="py-2 pr-4 text-slate-400">{c.tz}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Footer tip */}
+      <div className="text-xs text-slate-500">
+        Tip: drag anywhere on the global timeline; release to snap to the nearest hour.
+      </div>
     </div>
   );
 }
