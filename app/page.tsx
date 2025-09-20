@@ -11,7 +11,7 @@ import { loadCities, loadPrefs, saveCities, savePrefs } from "./(lib)/storage";
 export default function Page() {
   const [cities, setCities] = useState<City[]>(seedCities);
 
-  // Pick a safe initial reference id (first seed if present, otherwise a neutral default)
+  // Safe initial ref id
   const initialRefId = seedCities[0]?.id ?? "Europe/Helsinki";
 
   const [prefs, setPrefs] = useState<Preferences>({
@@ -27,7 +27,6 @@ export default function Page() {
       const [c, p] = await Promise.all([loadCities(), loadPrefs()]);
       if (c && Array.isArray(c) && c.length > 0) setCities(c);
       if (p) {
-        // Guard against corrupted storage missing referenceCityId
         setPrefs((prev) => ({
           timeFormat: p.timeFormat ?? prev.timeFormat,
           referenceCityId: p.referenceCityId ?? initialRefId
@@ -40,12 +39,21 @@ export default function Page() {
   useEffect(() => {
     saveCities(cities);
   }, [cities]);
+
   useEffect(() => {
     savePrefs(prefs);
   }, [prefs]);
 
   const referenceCity = useMemo(
-    () => cities.find((c) => c.id === prefs.referenceCityId) ?? cities[0] ?? seedCities[0] ?? { id: initialRefId, label: "Helsinki", countryCode: "FI", tz: "Europe/Helsinki" },
+    () =>
+      cities.find((c) => c.id === prefs.referenceCityId) ??
+      cities[0] ??
+      seedCities[0] ?? {
+        id: initialRefId,
+        label: "Helsinki",
+        countryCode: "FI",
+        tz: "Europe/Helsinki"
+      },
     [cities, prefs.referenceCityId, initialRefId]
   );
 
@@ -62,4 +70,34 @@ export default function Page() {
         cities={cities}
         onRemove={(id) => setCities(cities.filter((c) => c.id !== id))}
         onMakeReference={(id) => setPrefs({ ...prefs, referenceCityId: id })}
-        re
+        referenceCityId={referenceCity.id}
+        onOpenAddCity={() => setAddOpen(true)}
+      />
+
+      <main className="flex-1 min-w-0 p-6 space-y-6">
+        <header className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Time-Zone Comparison</h1>
+          <div className="text-sm text-slate-400">
+            Dark mode by default • Accessible focus rings • Keyboard-friendly
+          </div>
+        </header>
+
+        <Timeline
+          cities={cities}
+          setCities={setCities}
+          prefs={prefs}
+          setPrefs={setPrefs}
+          referenceCity={referenceCity}
+          onOpenAddCity={() => setAddOpen(true)}
+        />
+      </main>
+
+      <AddCityDialog
+        isOpen={addOpen}
+        onClose={() => setAddOpen(false)}
+        onAdd={handleAddCity}
+        existing={cities}
+      />
+    </div>
+  );
+}
