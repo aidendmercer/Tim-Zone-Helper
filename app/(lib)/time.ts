@@ -54,12 +54,13 @@ export function computeDateBreakHour(referenceDayStart: DateTime, city: City): n
 
 export function localDateRelation(reference: DateTime, city: City) {
   const refLocal = reference.setZone(city.tz);
-  const refDate = reference.toISODate();
-  const localDate = refLocal.toISODate();
-  if (localDate === refDate) return "same";
-  // Compare by ordinal
-  const diff = refLocal.startOf("day").ordinal - reference.startOf("day").ordinal;
-  if (diff > 0) return "next";
+
+  // Compare by ISO date strings (YYYY-MM-DD). These compare lexicographically.
+  const refDateStr = reference.startOf("day").toISODate();
+  const localDateStr = refLocal.startOf("day").toISODate();
+
+  if (localDateStr === refDateStr) return "same";
+  if (localDateStr && refDateStr && localDateStr > refDateStr) return "next";
   return "prev";
 }
 
