@@ -16,62 +16,64 @@ function detectUserTZ(): string | null {
   }
 }
 
-// Absolute safe defaults if seeds are empty for any reason
-const FALLBACK_CITY: City = {
-  id: "UTC",
-  label: "My Location",
-  countryCode: "XX",
-  tz: "UTC",
-};
-
 export default function Page() {
-  // Build the initial city list: ensure user's location is first
-  const userTz = detectUserTZ() ?? seedCities[0]?.tz ?? "UTC";
-
-  const myLocation: City = {
-    id: userTz,
-    label: "My Location",
-    countryCode: "XX",
-    tz: userTz,
-  };
-
-  const initialCities: City[] = (() => {
-    if (seedCities.length === 0) return [myLocation, FALLBACK_CITY];
-    const existing = seedCities.find((c) => c.tz === userTz);
-    if (existing) {
-      const others = seedCities.filter((c) => c.tz !== userTz);
-      return [existing, ...others];
-    }
-    return [myLocation, ...seedCities];
-  })();
-
-  const [cities, setCities] = useState<City[]>(initialCities);
+  // 1) Stable initial render: use seedCities as-is (no timezone detection yet)
+  const [cities, setCities] = useState<City[]>(seedCities);
   const [prefs, setPrefs] = useState<Preferences>({
     timeFormat: "24h",
-    referenceCityId: userTz,
+    referenceCityId: seedCities[0]?.id ?? "UTC",
   });
   const [addOpen, setAddOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Load persisted (and keep user's tz first)
+  // 2) After mount only: load persisted + detect user TZ and reorder
   useEffect(() => {
     (async () => {
-      const [c, p] = await Promise.all([loadCities(), loadPrefs()]);
-      if (c && Array.isArray(c) && c.length > 0) {
-        const userIndex = c.findIndex((x) => x.tz === userTz);
-        const ordered =
-          userIndex > -1 ? [c[userIndex], ...c.filter((_, i) => i !== userIndex)] : [myLocation, ...c];
-        setCities(ordered);
+      const [persistedCities, persistedPrefs] = await Promise.all([loadCities(), loadPrefs()]);
+      const userTz = detectUserTZ();
+
+      let nextCities = cities;
+      if (persistedCities && Array.isArray(persistedCities) && persistedCities.length > 0) {
+        nextCities = persistedCities;
       }
-      if (p) {
+
+      // If we can detect user TZ, ensure that city is first (or add a "My Location")
+      if (userTz) {
+        const existingIndex = nextCities.findIndex((c) => c.tz === userTz);
+        if (existingIndex > -1) {
+          nextCities = [nextCities[existingIndex], ...nextCities.filter((_, i) => i !== existingIndex)];
+        } else {
+          const myLocation: City = {
+            id: userTz,
+            label: "My Location",
+            countryCode: "XX",
+            tz: userTz,
+          };
+          nextCities = [myLocation, ...nextCities];
+        }
+      }
+
+      setCities(nextCities);
+
+      if (persistedPrefs) {
         setPrefs((prev) => ({
-          timeFormat: p.timeFormat ?? prev.timeFormat,
-          referenceCityId: userTz, // always anchor to user's tz
+          timeFormat: persistedPrefs.timeFormat ?? prev.timeFormat,
+          // anchor to user's tz if available; otherwise keep current reference
+          referenceCityId:
+            (userTz && (nextCities.find((c) => c.tz === userTz)?.id ?? prev.referenceCityId)) ??
+            prev.referenceCityId,
         }));
+      } else if (userTz) {
+        const refId = nextCities.find((c) => c.tz === userTz)?.id;
+        if (refId) {
+          setPrefs((prev) => ({ ...prev, referenceCityId: refId }));
+        }
       }
     })();
-  }, [userTz, myLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Persist after changes
   useEffect(() => {
     saveCities(cities);
   }, [cities]);
@@ -80,17 +82,18 @@ export default function Page() {
     savePrefs(prefs);
   }, [prefs]);
 
+  // Find reference city safely
   const referenceCity = useMemo(
     () =>
-      cities.find((c) => c.tz === userTz) ??
+      cities.find((c) => c.id === prefs.referenceCityId) ??
       cities[0] ??
       seedCities[0] ?? {
-        id: userTz,
+        id: "UTC",
         label: "My Location",
         countryCode: "XX",
-        tz: userTz,
+        tz: "UTC",
       },
-    [cities, userTz]
+    [cities, prefs.referenceCityId]
   );
 
   function handleAddCity(c: City) {
@@ -101,7 +104,7 @@ export default function Page() {
     <div className="min-h-screen flex">
       <Sidebar
         cities={cities}
-        onRemove={(id) => setCities(cities.filter((c) => c.id !== id))}
+        onRemove={(id) => setCities((prev) => prev.filter((c) => c.id !== id))}
         onMakeReference={() => {}}
         referenceCityId={referenceCity.id}
         onOpenAddCity={() => setAddOpen(true)}
