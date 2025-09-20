@@ -44,10 +44,13 @@ export default function Timeline({
   }, [referenceCity.tz]);
 
   // When user's zone or selected date changes, anchor timelines to that day start
-  const referenceDayStart = useMemo(() => {
-    const base = DateTime.fromISO(selectedDateISO, { zone: referenceCity.tz }).startOf("day");
-    return base;
-  }, [selectedDateISO, referenceCity.tz]);
+const referenceDayStart = useMemo(() => {
+  const [y, m, d] = selectedDateISO.split("-").map((n) => parseInt(n, 10));
+  // Build the date in the user's zone without using fromISO (keeps types simple)
+  const base = DateTime.fromObject({ year: y, month: m, day: d, hour: 0, minute: 0 }).setZone(referenceCity.tz).startOf("day");
+  return base;
+}, [selectedDateISO, referenceCity.tz]);
+
 
   // Adjust selectedTime to live on the chosen date (preserve hour component)
   useEffect(() => {
