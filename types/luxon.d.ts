@@ -7,14 +7,25 @@ declare module "luxon" {
     // constructors / factories
     static now(): DateTime;
     static fromJSDate(date: Date): DateTime;
-    static fromObject(obj: { hour?: number; minute?: number }): DateTime;
-    static fromISO(text: string, options?: { zone?: string }): DateTime;
+    static fromObject(obj: {
+      year?: number;
+      month?: number;
+      day?: number;
+      hour?: number;
+      minute?: number;
+    }): DateTime;
 
     // immutables returning new DateTime
     setZone(zone: string): DateTime;
     startOf(unit: "day" | "hour"): DateTime;
     plus(values: { minutes?: number; hours?: number }): DateTime;
-    set(values: { minute?: number }): DateTime;
+    set(values: {
+      year?: number;
+      month?: number;
+      day?: number;
+      hour?: number;
+      minute?: number;
+    }): DateTime;
 
     // comparisons / math
     diff(other: DateTime, unit: "hours"): { hours: number };
