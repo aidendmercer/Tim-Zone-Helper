@@ -4,7 +4,7 @@
 
 /* Light theme tokens */
 :root {
-  --bg: #ffffff;
+  --bg: #f8f8f8;
   --panel: #f8fafc; /* slate-50 */
   --muted: #475569; /* slate-600 */
   --text: #0f172a;  /* slate-900 */
