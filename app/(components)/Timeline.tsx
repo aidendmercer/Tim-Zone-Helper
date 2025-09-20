@@ -11,7 +11,7 @@ import { useBreakpoint } from "../(lib)/useBreakpoint";
 
 type Props = {
   cities: City[];
-  setCities: (cs: City[]) => void;
+  setCities: React.Dispatch<React.SetStateAction<City[]>>;
   prefs: Preferences;
   setPrefs: (p: Preferences) => void;
   referenceCity: City; // user's location
@@ -20,7 +20,13 @@ type Props = {
 };
 
 export default function Timeline({
-  cities, setCities, prefs, setPrefs, referenceCity, onOpenAddCity, onOpenSidebarMobile
+  cities,
+  setCities,
+  prefs,
+  setPrefs,
+  referenceCity,
+  onOpenAddCity,
+  onOpenSidebarMobile
 }: Props) {
   const bp = useBreakpoint();
 
@@ -156,10 +162,24 @@ export default function Timeline({
                 <div className="font-medium text-sm sm:text-base">{c.label}</div>
               </div>
               <div className="flex items-center gap-1 sm:gap-2">
-                {/* Single X remove button */}
+                {/* Single X remove button (stop propagation + functional update) */}
                 <button
+                  type="button"
                   className="text-slate-500 hover:text-black focus-ring p-2 rounded border border-slate-200 bg-white"
-                  onClick={() => setCities(cities.filter((x) => x.id !== c.id))}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCities((prev) => prev.filter((x) => x.id !== c.id));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCities((prev) => prev.filter((x) => x.id !== c.id));
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
                   title="Remove city"
                   aria-label={`Remove ${c.label}`}
                 >
@@ -194,8 +214,11 @@ export default function Timeline({
         <div className="mb-3 text-xs sm:text-sm text-slate-600">
           Selected:{" "}
           <span className="font-medium">
-            {selectedTime
-              .toFormat(prefs.timeFormat === "12h" ? "EEE d LLL yyyy • h:mm a" : "EEE d LLL yyyy • HH:mm")}
+            {selectedTime.toFormat(
+              prefs.timeFormat === "12h"
+                ? "EEE d LLL yyyy • h:mm a"
+                : "EEE d LLL yyyy • HH:mm"
+            )}
           </span>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
