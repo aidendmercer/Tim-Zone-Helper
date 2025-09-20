@@ -16,6 +16,11 @@
     "incremental": true,
     "plugins": [{ "name": "next" }]
   },
-  "include": ["app", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": [
+    "app",
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }
