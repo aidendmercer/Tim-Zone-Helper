@@ -1,0 +1,27 @@
+{
+  "name": "timezone-comparison-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "echo \"(lint step omitted for brevity)\""
+  },
+  "dependencies": {
+    "luxon": "3.5.0",
+    "next": "15.5.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@phosphor-icons/react": "2.1.7",
+    "idb-keyval": "6.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.12",
+    "@types/react": "18.3.5",
+    "postcss": "8.4.47",
+    "tailwindcss": "3.4.12",
+    "typescript": "5.6.3",
+    "autoprefixer": "10.4.20"
+  }
+}
